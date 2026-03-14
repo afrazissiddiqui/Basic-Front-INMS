@@ -1,0 +1,224 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.app-toolbar {
+  z-index: 10;
+  background: white;
+  color: var(--primary-deep);
+  border-bottom: 1px solid #e2e8f0;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  
+  .menu-btn {
+    margin-right: 16px;
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+    &:hover {
+      color: var(--accent-electric);
+      background: #f1f5f9;
+    }
+  }
+
+  span {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: var(--primary-deep);
+    
+    &.accent {
+      color: var(--accent-electric);
+      position: relative;
+    }
+  }
+
+  .spacer {
+    flex: 1 1 auto;
+  }
+
+  .user-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    
+    &:hover {
+      background: #f1f5f9;
+    }
+    
+    .user-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--primary-deep);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+  }
+}
+
+.app-sidenav-container {
+  flex: 1;
+  background-color: var(--bg-main);
+}
+
+.app-sidenav {
+  width: 260px;
+  background: var(--sidebar-gradient);
+  border-right: none;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 16px 12px;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+
+  .nav-group-label {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--sidebar-label) !important;
+    letter-spacing: 0.12em;
+    margin: 24px 16px 8px;
+    opacity: 1; 
+  }
+
+  .nav-item {
+    margin: 6px 0;
+    border-radius: 12px;
+    height: 48px;
+    color: var(--sidebar-text) !important;
+    font-weight: 600; 
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+    // Target the actual text span inside Material list item
+    ::ng-deep .mdc-list-item__primary-text {
+      color: var(--sidebar-text) !important;
+    }
+
+    mat-icon {
+      margin-right: 14px;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      color: rgba(255, 255, 255, 0.85) !important;
+      transition: all 0.3s ease;
+    }
+
+    &.active-link {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      color: var(--sidebar-active);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+      
+      mat-icon {
+        color: var(--accent-electric);
+        filter: drop-shadow(0 0 5px var(--accent-electric));
+      }
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: -12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 20px;
+        background: var(--accent-electric);
+        border-radius: 0 4px 4px 0;
+        box-shadow: 0 0 10px var(--accent-electric);
+      }
+    }
+
+    &:hover:not(.active-link) {
+      background-color: var(--sidebar-hover);
+      color: white;
+      transform: translateX(4px);
+      
+      mat-icon {
+        color: white;
+      }
+    }
+  }
+
+  .expansion-nav {
+    background: transparent;
+    
+    ::ng-deep .mat-expansion-panel-header {
+      border-radius: 12px;
+      height: 48px;
+      padding: 0 16px;
+      
+      &:hover {
+        background-color: var(--sidebar-hover);
+      }
+
+      .mat-content {
+        align-items: center;
+      }
+
+      .mat-expansion-panel-header-title {
+        color: var(--sidebar-text) !important;
+        font-weight: 600;
+        align-items: center;
+        gap: 14px;
+        
+        mat-icon {
+          color: rgba(255, 255, 255, 0.85) !important;
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+      }
+
+      // Fix the expansion indicator arrow color
+      ::ng-deep .mat-expansion-indicator::after {
+        color: rgba(255, 255, 255, 0.7) !important;
+      }
+    }
+
+    .submenu {
+      padding-left: 16px;
+      margin-top: 4px;
+      border-left: 1px dashed rgba(255, 255, 255, 0.1);
+      margin-left: 24px;
+      
+      .nav-item {
+        height: 40px;
+        font-size: 13px;
+        margin: 2px 0;
+      }
+    }
+  }
+}
+
+.app-content {
+  padding: 32px;
+  overflow-y: auto;
+}
+
+.content-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+::ng-deep {
+  .mat-drawer-inner-container {
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}
