@@ -1,113 +1,129 @@
-<div class="app-container">
-  <mat-toolbar class="app-toolbar">
-    <button mat-icon-button (click)="toggleSidenav()" class="menu-btn">
-      <mat-icon>menu_open</mat-icon>
-    </button>
-    <span>INMS<span class="accent">PRO</span></span>
-    
-    <span class="spacer"></span>
+<ng-container *ngIf="!isLoginPage()">
+  <div class="app-container">
+    <mat-toolbar class="app-toolbar">
+      <button mat-icon-button (click)="toggleSidenav()" class="menu-btn">
+        <mat-icon>menu_open</mat-icon>
+      </button>
+      <span>INMS<span class="accent">PRO</span></span>
+      
+      <span class="spacer"></span>
 
-    <div class="user-section">
-      <span class="user-name">Admin User</span>
-      <div class="avatar">
-        <mat-icon>person</mat-icon>
+      <div class="user-section">
+        <span class="user-name">{{ currentUser?.FullName || 'User' }}</span>
+        <button mat-icon-button [matMenuTriggerFor]="userMenu" class="avatar-button" style="padding: 0; min-width: auto; line-height: normal;">
+          <div class="avatar">
+            <mat-icon>person</mat-icon>
+          </div>
+        </button>
+        <mat-menu #userMenu="matMenu" xPosition="before">
+          <button mat-menu-item (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            <span>Logout</span>
+          </button>
+        </mat-menu>
       </div>
-    </div>
-  </mat-toolbar>
+    </mat-toolbar>
 
-  <mat-sidenav-container class="app-sidenav-container" autosize>
-    <mat-sidenav #sidenav mode="side" [opened]="isExpanded" class="app-sidenav" [fixedInViewport]="false">
-      <div class="nav-group-label" *ngIf="isExpanded">General</div>
-      <mat-nav-list>
-        <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link" class="nav-item">
-          <mat-icon matListItemIcon>dashboard</mat-icon>
-          <span matListItemTitle *ngIf="isExpanded">Dashboard</span>
-        </a>
-      </mat-nav-list>
+    <mat-sidenav-container class="app-sidenav-container" autosize>
+      <mat-sidenav #sidenav mode="side" [opened]="isExpanded" class="app-sidenav" [fixedInViewport]="false">
+        <div class="nav-group-label" *ngIf="isExpanded">General</div>
+        <mat-nav-list>
+          <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link" class="nav-item">
+            <mat-icon matListItemIcon>dashboard</mat-icon>
+            <span matListItemTitle *ngIf="isExpanded">Dashboard</span>
+          </a>
+        </mat-nav-list>
 
-      <div class="nav-group-label" *ngIf="isExpanded">Management</div>
-      <mat-nav-list>
-        <mat-expansion-panel [expanded]="true" class="mat-elevation-z0 expansion-nav">
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              <mat-icon>database</mat-icon>
-              <span *ngIf="isExpanded">Master Data</span>
-            </mat-panel-title>
-          </mat-expansion-panel-header>
+        <div class="nav-group-label" *ngIf="isExpanded">Management</div>
+        <mat-nav-list>
+          <mat-expansion-panel [expanded]="true" class="mat-elevation-z0 expansion-nav">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon>database</mat-icon>
+                <span *ngIf="isExpanded">Master Data</span>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
 
-          <mat-nav-list class="submenu">
-            <a mat-list-item routerLink="/items" routerLinkActive="active-link" class="nav-item">
-              <mat-icon matListItemIcon>inventory_2</mat-icon>
-              <span matListItemTitle *ngIf="isExpanded">Items</span>
-            </a>
-            <a mat-list-item routerLink="/categories" routerLinkActive="active-link" class="nav-item">
-              <mat-icon matListItemIcon>category</mat-icon>
-              <span matListItemTitle *ngIf="isExpanded">Categories</span>
-            </a>
-            <a mat-list-item routerLink="/business-partners" routerLinkActive="active-link" class="nav-item">
-              <mat-icon matListItemIcon>handshake</mat-icon>
-              <span matListItemTitle *ngIf="isExpanded">Business Partners</span>
-            </a>
-            <a mat-list-item routerLink="/vat" routerLinkActive="active-link" class="nav-item">
-              <mat-icon matListItemIcon>percent</mat-icon>
-              <span matListItemTitle *ngIf="isExpanded">VAT</span>
-            </a>
-            <a mat-list-item routerLink="/uom" routerLinkActive="active-link" class="nav-item">
-              <mat-icon matListItemIcon>straighten</mat-icon>
-              <span matListItemTitle *ngIf="isExpanded">Unit of Measure</span>
-            </a>
-          </mat-nav-list>
-        </mat-expansion-panel>
+            <mat-nav-list class="submenu">
+              <a mat-list-item routerLink="/items" routerLinkActive="active-link" class="nav-item">
+                <mat-icon matListItemIcon>inventory_2</mat-icon>
+                <span matListItemTitle *ngIf="isExpanded">Items</span>
+              </a>
+              <a mat-list-item routerLink="/categories" routerLinkActive="active-link" class="nav-item">
+                <mat-icon matListItemIcon>category</mat-icon>
+                <span matListItemTitle *ngIf="isExpanded">Categories</span>
+              </a>
+              <a mat-list-item routerLink="/business-partners" routerLinkActive="active-link" class="nav-item">
+                <mat-icon matListItemIcon>handshake</mat-icon>
+                <span matListItemTitle *ngIf="isExpanded">Business Partners</span>
+              </a>
+              <a mat-list-item routerLink="/vat" routerLinkActive="active-link" class="nav-item">
+                <mat-icon matListItemIcon>percent</mat-icon>
+                <span matListItemTitle *ngIf="isExpanded">VAT</span>
+              </a>
+              <a mat-list-item routerLink="/uom" routerLinkActive="active-link" class="nav-item">
+                <mat-icon matListItemIcon>straighten</mat-icon>
+                <span matListItemTitle *ngIf="isExpanded">Unit of Measure</span>
+              </a>
+            </mat-nav-list>
+          </mat-expansion-panel>
 
-        <mat-expansion-panel class="mat-elevation-z0 expansion-nav">
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              <mat-icon>receipt_long</mat-icon>
-              <span *ngIf="isExpanded">Invoices</span>
-            </mat-panel-title>
-          </mat-expansion-panel-header>
+          <mat-expansion-panel class="mat-elevation-z0 expansion-nav">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon>receipt_long</mat-icon>
+                <span *ngIf="isExpanded">Invoices</span>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
 
-          <mat-nav-list class="submenu">
-            <a mat-list-item routerLink="/invoices/ap" routerLinkActive="active-link" class="nav-item">
-              <mat-icon matListItemIcon>shopping_cart</mat-icon>
-              <span matListItemTitle *ngIf="isExpanded">AP Invoice</span>
-            </a>
-            <a mat-list-item routerLink="/invoices/ar" routerLinkActive="active-link" class="nav-item">
-              <mat-icon matListItemIcon>point_of_sale</mat-icon>
-              <span matListItemTitle *ngIf="isExpanded">AR Invoice</span>
-            </a>
-          </mat-nav-list>
-        </mat-expansion-panel>
-      </mat-nav-list>
+            <mat-nav-list class="submenu">
+              <a mat-list-item routerLink="/invoices/ap" routerLinkActive="active-link" class="nav-item">
+                <mat-icon matListItemIcon>shopping_cart</mat-icon>
+                <span matListItemTitle *ngIf="isExpanded">AP Invoice</span>
+              </a>
+              <a mat-list-item routerLink="/invoices/ar" routerLinkActive="active-link" class="nav-item">
+                <mat-icon matListItemIcon>point_of_sale</mat-icon>
+                <span matListItemTitle *ngIf="isExpanded">AR Invoice</span>
+              </a>
+            </mat-nav-list>
+          </mat-expansion-panel>
+        </mat-nav-list>
 
-      <div class="nav-group-label" *ngIf="isExpanded">Admin Panel</div>
-      <mat-nav-list>
-        <mat-expansion-panel class="mat-elevation-z0 expansion-nav">
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              <mat-icon>admin_panel_settings</mat-icon>
-              <span *ngIf="isExpanded">Administration</span>
-            </mat-panel-title>
-          </mat-expansion-panel-header>
+        <div class="nav-group-label" *ngIf="isExpanded">Admin Panel</div>
+        <mat-nav-list>
+          <mat-expansion-panel class="mat-elevation-z0 expansion-nav">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon>admin_panel_settings</mat-icon>
+                <span *ngIf="isExpanded">Administration</span>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
 
-          <mat-nav-list class="submenu">
-            <a mat-list-item routerLink="/admin/roles" routerLinkActive="active-link" class="nav-item">
-              <mat-icon matListItemIcon>manage_accounts</mat-icon>
-              <span matListItemTitle *ngIf="isExpanded">Assign Role</span>
-            </a>
-            <a mat-list-item routerLink="/admin/permissions" routerLinkActive="active-link" class="nav-item">
-              <mat-icon matListItemIcon>security</mat-icon>
-              <span matListItemTitle *ngIf="isExpanded">Assign Permission</span>
-            </a>
-          </mat-nav-list>
-        </mat-expansion-panel>
-      </mat-nav-list>
-    </mat-sidenav>
+            <mat-nav-list class="submenu">
+              <a mat-list-item routerLink="/admin/roles" routerLinkActive="active-link" class="nav-item">
+                <mat-icon matListItemIcon>manage_accounts</mat-icon>
+                <span matListItemTitle *ngIf="isExpanded">Assign Role</span>
+              </a>
+              <a mat-list-item routerLink="/admin/permissions" routerLinkActive="active-link" class="nav-item">
+                <mat-icon matListItemIcon>security</mat-icon>
+                <span matListItemTitle *ngIf="isExpanded">Assign Permission</span>
+              </a>
+            </mat-nav-list>
+          </mat-expansion-panel>
+        </mat-nav-list>
+      </mat-sidenav>
 
-    <mat-sidenav-content class="app-content">
-      <div class="content-wrapper" [@fadeAnimation]="prepareRoute(outlet)">
-        <router-outlet #outlet="outlet"></router-outlet>
-      </div>
-    </mat-sidenav-content>
-  </mat-sidenav-container>
-</div>
+      <mat-sidenav-content class="app-content">
+        <div class="content-wrapper" [@fadeAnimation]="prepareRoute(outlet)">
+          <router-outlet #outlet="outlet"></router-outlet>
+        </div>
+      </mat-sidenav-content>
+    </mat-sidenav-container>
+  </div>
+</ng-container>
+
+<ng-container *ngIf="isLoginPage()">
+  <div class="login-wrapper" [@fadeAnimation]="prepareRoute(loginOutlet)">
+    <router-outlet #loginOutlet="outlet"></router-outlet>
+  </div>
+</ng-container>

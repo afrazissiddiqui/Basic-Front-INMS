@@ -1,0 +1,149 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+  overflow: hidden;
+  position: relative;
+}
+
+.login-card-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  padding: 20px;
+  z-index: 10;
+}
+
+.login-card {
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  padding: 40px 30px;
+  background-color: white;
+  position: relative;
+  z-index: 2;
+  
+  mat-card-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 30px;
+    
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+
+      .logo-icon {
+        font-size: 36px;
+        height: 36px;
+        width: 36px;
+        color: #3f51b5;
+      }
+      
+      .logo-text {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0;
+        color: #333;
+        letter-spacing: -0.5px;
+        
+        .accent {
+          color: #3f51b5;
+          font-weight: 900;
+        }
+      }
+    }
+    
+    mat-card-subtitle {
+      font-size: 15px;
+      color: #718096;
+    }
+  }
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  
+  .full-width {
+    width: 100%;
+  }
+  
+  mat-icon {
+    color: #a0aec0;
+  }
+  
+  .login-btn {
+    padding: 24px 0;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 8px;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+    
+    &:not([disabled]):hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 15px rgba(63, 81, 181, 0.3);
+    }
+
+    .spinner {
+      display: inline-block;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+  }
+}
+
+.background-decorations {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+
+  .circle {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.6;
+  }
+
+  .circle-1 {
+    width: 300px;
+    height: 300px;
+    background: #a3bffa;
+    top: -100px;
+    left: -100px;
+  }
+
+  .circle-2 {
+    width: 250px;
+    height: 250px;
+    background: #e9d8fd;
+    bottom: -80px;
+    right: -80px;
+    animation: float 6s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px) scale(1);
+  }
+  100% {
+    transform: translateY(-20px) scale(1.05);
+  }
+}
