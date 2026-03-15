@@ -140,7 +140,7 @@ import { Router } from '@angular/router';
               <mat-icon>show_chart</mat-icon>
               <span>Sales Trend</span>
             </div>
-            <div class="chart-value">{{ totalSalesToday | currency:'USD':'symbol':'1.0-0' }} today</div>
+            <div class="chart-value">{{ totalSalesToday | currency:'PKR':'symbol':'1.0-0' }} today</div>
           </div>
           <div class="chart-container">
             <canvas baseChart [data]="salesChartData" [options]="chartOptions" type="line"></canvas>
@@ -181,7 +181,7 @@ import { Router } from '@angular/router';
           <div class="summary-content">
             <div class="main-stat">
               <span class="label">Total Sold of the Day</span>
-              <h1 class="total-value">{{ totalSalesToday | currency:'USD' }}</h1>
+              <h1 class="total-value">{{ totalSalesToday | currency:'PKR' }}</h1>
             </div>
             
             <div class="items-list">

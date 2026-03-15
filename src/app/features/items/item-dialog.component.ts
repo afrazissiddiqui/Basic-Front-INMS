@@ -75,6 +75,18 @@ import { UomService, UnitOfMeasure } from '../../core/services/uom.service';
             <input matInput type="number" formControlName="StockQuantity" placeholder="0" [readonly]="isViewOnly">
           </mat-form-field>
 
+          <mat-form-field appearance="outline">
+            <mat-label>Buy Price</mat-label>
+            <input matInput type="number" formControlName="BuyPrice" placeholder="0.00" [readonly]="isViewOnly">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Sale Price</mat-label>
+            <input matInput type="number" formControlName="SalePrice" placeholder="0.00" [readonly]="isViewOnly">
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
           <div class="checkbox-container">
             <mat-checkbox formControlName="AllowNegativeInventory" color="primary">
               Allow Negative Inventory
@@ -153,6 +165,8 @@ export class ItemDialogComponent implements OnInit {
       CategoryId: [{ value: this.data?.item?.CategoryId || '', disabled: this.isViewOnly }, [Validators.required]],
       UnitAbbreviation: [{ value: this.data?.item?.UnitAbbreviation || '', disabled: this.isViewOnly }, [Validators.required]],
       StockQuantity: [{ value: this.data?.item?.StockQuantity || 0, disabled: this.isViewOnly }, [Validators.required, Validators.min(0)]],
+      BuyPrice: [{ value: this.data?.item?.BuyPrice || 0, disabled: this.isViewOnly }, [Validators.required, Validators.min(0)]],
+      SalePrice: [{ value: this.data?.item?.SalePrice || 0, disabled: this.isViewOnly }, [Validators.required, Validators.min(0)]],
       AllowNegativeInventory: [{ value: this.data?.item?.AllowNegativeInventory ?? true, disabled: this.isViewOnly }]
     });
   }
@@ -224,6 +238,8 @@ export class ItemDialogComponent implements OnInit {
         CategoryId: Number(formValue.CategoryId),
         UnitAbbreviation: formValue.UnitAbbreviation,
         StockQuantity: Number(formValue.StockQuantity),
+        BuyPrice: Number(formValue.BuyPrice),
+        SalePrice: Number(formValue.SalePrice),
         AllowNegativeInventory: formValue.AllowNegativeInventory
       };
 

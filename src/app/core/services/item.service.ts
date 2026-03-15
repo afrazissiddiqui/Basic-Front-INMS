@@ -8,6 +8,9 @@ export interface Item {
   CategoryName: string;
   StockQuantity: number;
   UnitAbbreviation: string;
+  BuyPrice: number;
+  SalePrice: number;
+  AllowNegativeInventory: boolean;
   // Add other fields as needed based on the response
 }
 
@@ -16,6 +19,8 @@ export interface CreateItemPayload {
   CategoryId: number;
   UnitAbbreviation: string;
   StockQuantity: number;
+  BuyPrice: number;
+  SalePrice: number;
   AllowNegativeInventory: boolean;
 }
 
