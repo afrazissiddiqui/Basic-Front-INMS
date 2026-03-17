@@ -37,6 +37,7 @@ export class AppComponent {
 
   title = 'inms-front';
   isExpanded = true;
+  isSideNavLocked = true;
   showSubmenu: boolean = false;
   isShowing = false;
   showSubSubMenu: boolean = false;
@@ -54,7 +55,20 @@ export class AppComponent {
   }
 
   toggleSidenav() {
-    this.isExpanded = !this.isExpanded;
+    this.isSideNavLocked = !this.isSideNavLocked;
+    this.isExpanded = this.isSideNavLocked;
+  }
+
+  onMouseEnter() {
+    if (!this.isSideNavLocked) {
+      this.isExpanded = true;
+    }
+  }
+
+  onMouseLeave() {
+    if (!this.isSideNavLocked) {
+      this.isExpanded = false;
+    }
   }
 
   prepareRoute(outlet: RouterOutlet) {

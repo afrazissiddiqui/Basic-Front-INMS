@@ -127,22 +127,6 @@ import { ItemDialogComponent } from './item-dialog.component';
             </td>
           </ng-container>
 
-          <!-- Buy Price Column -->
-          <ng-container matColumnDef="BuyPrice">
-            <th mat-header-cell *matHeaderCellDef> Buy Price </th>
-            <td mat-cell *matCellDef="let element"> 
-              <span class="price-badge buy-price">{{element.BuyPrice | currency:'PKR'}}</span>
-            </td>
-          </ng-container>
-
-          <!-- Sale Price Column -->
-          <ng-container matColumnDef="SalePrice">
-            <th mat-header-cell *matHeaderCellDef> Sale Price </th>
-            <td mat-cell *matCellDef="let element"> 
-              <span class="price-badge sale-price">{{element.SalePrice | currency:'PKR'}}</span>
-            </td>
-          </ng-container>
-
           <!-- Actions Column -->
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef> Actions </th>
@@ -565,7 +549,7 @@ import { ItemDialogComponent } from './item-dialog.component';
   `]
 })
 export class ItemsComponent implements OnInit {
-  displayedColumns: string[] = ['Id', 'ItemName', 'CategoryName', 'StockQuantity', 'BuyPrice', 'SalePrice', 'actions'];
+  displayedColumns: string[] = ['Id', 'ItemName', 'CategoryName', 'StockQuantity', 'actions'];
   dataSource: Item[] = [];
   isLoading = true;
   errorMessage = '';

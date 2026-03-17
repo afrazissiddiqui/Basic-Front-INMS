@@ -10,6 +10,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
+import { Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
 import { ApInvoiceService, APInvoice } from '../../core/services/ap-invoice.service';
 import { BusinessPartnerService, BusinessPartner } from '../../core/services/business-partner.service';
 import { ItemService, Item } from '../../core/services/item.service';
@@ -29,7 +33,8 @@ import { VatService, VAT } from '../../core/services/vat.service';
     MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatAutocompleteModule
   ],
   template: `
     <h2 mat-dialog-title class="dialog-title">
@@ -41,7 +46,7 @@ import { VatService, VAT } from '../../core/services/vat.service';
         <div class="header-row">
           <mat-form-field appearance="outline">
             <mat-label>Invoice Number</mat-label>
-            <input matInput formControlName="InvoiceNumber" placeholder="Ex: INV-2024-001">
+            <input matInput formControlName="InvoiceNumber" placeholder="Ex: INV-2024-001" readonly>
             <mat-error *ngIf="invoiceForm.get('InvoiceNumber')?.hasError('required')">Required</mat-error>
           </mat-form-field>
 
@@ -78,11 +83,19 @@ import { VatService, VAT } from '../../core/services/vat.service';
               
               <mat-form-field appearance="outline" class="flex-2">
                 <mat-label>Item</mat-label>
-                <mat-select formControlName="ItemId">
-                  <mat-option *ngFor="let item of items" [value]="item.Id">
+                <input type="text"
+                       placeholder="Search item..."
+                       matInput
+                       formControlName="ItemNameSearch"
+                       [matAutocomplete]="auto">
+                <mat-autocomplete #auto="matAutocomplete" 
+                                (optionSelected)="onSelectedItem($event.option.value, i)"
+                                [displayWith]="displayItemName">
+                  <mat-option *ngFor="let item of filteredItems[i] | async" [value]="item">
                     {{ item.ItemName }}
                   </mat-option>
-                </mat-select>
+                </mat-autocomplete>
+                <mat-icon matSuffix>search</mat-icon>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="flex-1">
@@ -193,6 +206,7 @@ export class ApInvoiceDialogComponent implements OnInit {
   vendors: BusinessPartner[] = [];
   items: Item[] = [];
   vats: VAT[] = [];
+  filteredItems: Observable<Item[]>[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -217,10 +231,83 @@ export class ApInvoiceDialogComponent implements OnInit {
   ngOnInit(): void {
     this.loadDropdownData();
     if (this.data?.invoice?.Lines) {
-      this.data.invoice.Lines.forEach((line: any) => this.addLine(line));
+      this.data.invoice.Lines.forEach((line: any) => {
+        const item = this.items.find(i => i.Id === line.ItemId);
+        this.addLine(line, item);
+      });
     } else {
       this.addLine();
     }
+
+    if (this.data?.mode === 'add') {
+      this.generateInvoiceNumber();
+      this.invoiceForm.get('InvoiceDate')?.valueChanges.subscribe(() => {
+        this.generateInvoiceNumber();
+      });
+    }
+  }
+
+  displayItemName(item: Item): string {
+    return item ? item.ItemName : '';
+  }
+
+  onSelectedItem(item: Item, index: number) {
+    const lineGroup = this.lines.at(index);
+    lineGroup.get('ItemId')?.setValue(item.Id);
+    
+    if (item.BuyPrice) {
+      lineGroup.get('UnitPrice')?.setValue(item.BuyPrice);
+    }
+  }
+
+  setupItemFilter(index: number) {
+    const lineGroup = this.lines.at(index);
+    const control = lineGroup.get('ItemNameSearch');
+    
+    if (control) {
+      this.filteredItems[index] = control.valueChanges.pipe(
+        startWith(''),
+        map(value => {
+          const name = typeof value === 'string' ? value : value?.ItemName;
+          return name ? this._filterItems(name) : this.items.slice();
+        })
+      );
+    }
+  }
+
+  private _filterItems(name: string): Item[] {
+    const filterValue = name.toLowerCase();
+    return this.items.filter(item => item.ItemName.toLowerCase().includes(filterValue));
+  }
+
+  generateInvoiceNumber() {
+    const date = this.invoiceForm.get('InvoiceDate')?.value || new Date();
+    const formattedDate = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const timeStr = `${hours}${minutes}`;
+
+    this.invoiceService.getInvoices().subscribe({
+      next: (res) => {
+        const invoices = res.Data || res || [];
+        const prefix = `INV-${formattedDate}-${timeStr}-`;
+        
+        let maxSeq = 0;
+        invoices.forEach((inv: any) => {
+          if (inv.InvoiceNumber && inv.InvoiceNumber.startsWith(prefix)) {
+            const seqStr = inv.InvoiceNumber.split('-').pop();
+            const seq = parseInt(seqStr || '0', 10);
+            if (seq > maxSeq) maxSeq = seq;
+          }
+        });
+        
+        const nextSeq = (maxSeq + 1).toString().padStart(2, '0');
+        this.invoiceForm.patchValue({ InvoiceNumber: `${prefix}${nextSeq}` });
+      },
+      error: () => {
+        this.invoiceForm.patchValue({ InvoiceNumber: `INV-${formattedDate}-${hours}${minutes}-01` });
+      }
+    });
   }
 
   get lines() {
@@ -236,18 +323,25 @@ export class ApInvoiceDialogComponent implements OnInit {
     this.vatService.getVATs().subscribe(res => this.vats = res.Data || res);
   }
 
-  addLine(line?: any) {
+  addLine(line?: any, selectedItem?: Item) {
     const lineGroup = this.fb.group({
+      ItemNameSearch: [{ value: selectedItem || '', disabled: this.isViewOnly }, [Validators.required]],
       ItemId: [{ value: line?.ItemId || '', disabled: this.isViewOnly }, [Validators.required]],
       Quantity: [{ value: line?.Quantity || 1, disabled: this.isViewOnly }, [Validators.required, Validators.min(1)]],
       UnitPrice: [{ value: line?.UnitPrice || 0, disabled: this.isViewOnly }, [Validators.required, Validators.min(0)]],
       VatId: [{ value: line?.VatId || '', disabled: this.isViewOnly }, [Validators.required]]
     });
+    
+    const index = this.lines.length;
     this.lines.push(lineGroup);
+    this.setupItemFilter(index);
   }
 
   removeLine(index: number) {
-    this.lines.removeAt(index);
+    if (this.lines.length > 1) {
+      this.lines.removeAt(index);
+      this.filteredItems.splice(index, 1);
+    }
   }
 
   onCancel() {

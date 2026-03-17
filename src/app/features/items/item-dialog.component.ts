@@ -190,6 +190,16 @@ export class ItemDialogComponent implements OnInit {
           console.warn('Unexpected category API response format:', response);
           this.categories = [];
         }
+
+        // If we have categories and CategoryName but no CategoryId, try to find the ID
+        const currentId = this.itemForm.get('CategoryId')?.value;
+        const categoryName = this.data?.item?.CategoryName;
+        if (!currentId && categoryName && this.categories.length > 0) {
+          const match = this.categories.find(c => c.Name === categoryName);
+          if (match) {
+            this.itemForm.patchValue({ CategoryId: match.Id });
+          }
+        }
       },
       error: (err) => {
         console.error('Failed to load categories:', err);

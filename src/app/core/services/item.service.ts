@@ -6,6 +6,7 @@ export interface Item {
   Id: number;
   ItemName: string;
   CategoryName: string;
+  CategoryId: number;
   StockQuantity: number;
   UnitAbbreviation: string;
   BuyPrice: number;

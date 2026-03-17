@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
+import { Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,6 +14,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { ArInvoiceService, ARInvoice } from '../../core/services/ar-invoice.service';
 import { BusinessPartnerService } from '../../core/services/business-partner.service';
 import { ItemService } from '../../core/services/item.service';
@@ -32,7 +35,8 @@ import { VatService } from '../../core/services/vat.service';
     MatDatepickerModule,
     MatNativeDateModule,
     MatSnackBarModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatAutocompleteModule
   ],
   animations: [
     trigger('pageAnimations', [
@@ -108,7 +112,7 @@ import { VatService } from '../../core/services/vat.service';
                 <mat-label>Customer</mat-label>
                 <mat-select formControlName="BusinessPartnerId">
                   <mat-option *ngFor="let partner of partners" [value]="partner.Id">
-                    {{ partner.Name }}
+                    {{ partner.BusinessName }} ({{ partner.FirstName }} {{ partner.LastName }})
                   </mat-option>
                 </mat-select>
                 <mat-icon matSuffix>person_search</mat-icon>
@@ -116,7 +120,7 @@ import { VatService } from '../../core/services/vat.service';
 
               <mat-form-field appearance="outline" class="flex-1">
                 <mat-label>Invoice Number</mat-label>
-                <input matInput formControlName="InvoiceNumber" placeholder="INV-0000">
+                <input matInput formControlName="InvoiceNumber" placeholder="INV-0000" readonly>
                 <mat-icon matSuffix>tag</mat-icon>
               </mat-form-field>
 
@@ -150,11 +154,19 @@ import { VatService } from '../../core/services/vat.service';
                 <div class="line-fields">
                   <mat-form-field appearance="outline" class="flex-2">
                     <mat-label>Item / Service</mat-label>
-                    <mat-select formControlName="ItemId">
-                      <mat-option *ngFor="let item of items" [value]="item.Id">
+                    <input type="text"
+                           placeholder="Search item..."
+                           matInput
+                           formControlName="ItemNameSearch"
+                           [matAutocomplete]="auto">
+                    <mat-autocomplete #auto="matAutocomplete" 
+                                    (optionSelected)="onSelectedItem($event.option.value, i)"
+                                    [displayWith]="displayItemName">
+                      <mat-option *ngFor="let item of filteredItems[i] | async" [value]="item">
                         {{ item.ItemName }}
                       </mat-option>
-                    </mat-select>
+                    </mat-autocomplete>
+                    <mat-icon matSuffix>search</mat-icon>
                   </mat-form-field>
 
                   <mat-form-field appearance="outline" class="flex-1">
@@ -512,6 +524,7 @@ export class ArInvoiceManageComponent implements OnInit {
   isViewOnly = false;
   isSubmitting = false;
   invoiceId?: number;
+  filteredItems: Observable<any[]>[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -534,9 +547,81 @@ export class ArInvoiceManageComponent implements OnInit {
   ngOnInit() {
     this.checkMode();
     this.loadDropdowns();
+
+    if (this.mode === 'add') {
+      this.generateInvoiceNumber();
+      // Listen for date changes to update the invoice number
+      this.invoiceForm.get('InvoiceDate')?.valueChanges.subscribe(() => {
+        this.generateInvoiceNumber();
+      });
+    }
+  }
+
+  generateInvoiceNumber() {
+    const date = this.invoiceForm.get('InvoiceDate')?.value || new Date();
+    const formattedDate = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const timeStr = `${hours}${minutes}`;
+    
+    this.invoiceService.getInvoices().subscribe({
+      next: (res) => {
+        const invoices = res.Data || res || [];
+        const prefix = `INV-${formattedDate}-${timeStr}-`;
+        
+        let maxSeq = 0;
+        invoices.forEach((inv: any) => {
+          if (inv.InvoiceNumber && inv.InvoiceNumber.startsWith(prefix)) {
+            const seqStr = inv.InvoiceNumber.split('-').pop();
+            const seq = parseInt(seqStr || '0', 10);
+            if (seq > maxSeq) maxSeq = seq;
+          }
+        });
+        
+        const nextSeq = (maxSeq + 1).toString().padStart(2, '0');
+        this.invoiceForm.patchValue({ InvoiceNumber: `${prefix}${nextSeq}` });
+      },
+      error: () => {
+        this.invoiceForm.patchValue({ InvoiceNumber: `INV-${formattedDate}-${hours}${minutes}-01` });
+      }
+    });
   }
 
   get lines() { return this.invoiceForm.get('Lines') as FormArray; }
+
+  displayItemName(item: any): string {
+    return item ? item.ItemName : '';
+  }
+
+  onSelectedItem(item: any, index: number) {
+    const lineGroup = this.lines.at(index);
+    lineGroup.get('ItemId')?.setValue(item.Id);
+    
+    // Auto-fill price from SalePrice
+    if (item.SalePrice) {
+      lineGroup.get('UnitPrice')?.setValue(item.SalePrice);
+    }
+  }
+
+  setupItemFilter(index: number) {
+    const lineGroup = this.lines.at(index);
+    const control = lineGroup.get('ItemNameSearch');
+    
+    if (control) {
+      this.filteredItems[index] = control.valueChanges.pipe(
+        startWith(''),
+        map(value => {
+          const name = typeof value === 'string' ? value : value?.ItemName;
+          return name ? this._filterItems(name) : this.items.slice();
+        })
+      );
+    }
+  }
+
+  private _filterItems(name: string): any[] {
+    const filterValue = name.toLowerCase();
+    return this.items.filter(item => item.ItemName.toLowerCase().includes(filterValue));
+  }
 
   checkMode() {
     const segments = this.route.snapshot.url.map(s => s.path);
@@ -558,8 +643,8 @@ export class ArInvoiceManageComponent implements OnInit {
 
   loadDropdowns() {
     this.partnerService.getBusinessPartners().subscribe(res => {
-      // Typically AR would filter for Customers, but using default getPartners for now
-      this.partners = res.Data || res;
+      const data = res.Data || res;
+      this.partners = data.filter((bp: any) => bp.Type === 'Customer' || bp.Type === 'Both');
     });
     this.itemService.getItems().subscribe(res => this.items = res.Data || res);
     this.vatService.getVATs().subscribe(res => this.vats = res.Data || res);
@@ -575,22 +660,32 @@ export class ArInvoiceManageComponent implements OnInit {
       });
       
       this.lines.clear();
-      inv.Lines.forEach((l: any) => this.addLine(l));
+      inv.Lines.forEach((l: any) => {
+        const item = this.items.find(i => i.Id === l.ItemId);
+        this.addLine(l, item);
+      });
     });
   }
 
-  addLine(line?: any) {
+  addLine(line?: any, selectedItem?: any) {
     const lineGroup = this.fb.group({
+      ItemNameSearch: [selectedItem || '', Validators.required],
       ItemId: [line?.ItemId || null, Validators.required],
       Quantity: [line?.Quantity || 1, [Validators.required, Validators.min(1)]],
       UnitPrice: [line?.UnitPrice || 0, [Validators.required, Validators.min(0)]],
       VatId: [line?.VatId || null, Validators.required]
     });
+    
+    const index = this.lines.length;
     this.lines.push(lineGroup);
+    this.setupItemFilter(index);
   }
 
   removeLine(index: number) {
-    if (this.lines.length > 1) this.lines.removeAt(index);
+    if (this.lines.length > 1) {
+      this.lines.removeAt(index);
+      this.filteredItems.splice(index, 1);
+    }
   }
 
   calculateLineTotal(index: number): number {
@@ -609,8 +704,17 @@ export class ArInvoiceManageComponent implements OnInit {
     if (this.invoiceForm.invalid) return;
 
     this.isSubmitting = true;
+    const formRawValue = this.invoiceForm.getRawValue();
+    
+    // Clean lines of ItemNameSearch before sending to backend
+    const cleanLines = formRawValue.Lines.map((l: any) => {
+      const { ItemNameSearch, ...lineData } = l;
+      return lineData;
+    });
+
     const payload: ARInvoice = {
-      ...this.invoiceForm.getRawValue(),
+      ...formRawValue,
+      Lines: cleanLines,
       InvoiceDate: this.invoiceForm.value.InvoiceDate.toISOString()
     };
 

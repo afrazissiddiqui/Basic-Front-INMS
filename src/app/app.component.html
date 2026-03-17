@@ -1,8 +1,8 @@
 <ng-container *ngIf="!isLoginPage()">
   <div class="app-container">
     <mat-toolbar class="app-toolbar">
-      <button mat-icon-button (click)="toggleSidenav()" class="menu-btn">
-        <mat-icon>menu_open</mat-icon>
+      <button mat-icon-button (click)="toggleSidenav()" (mouseenter)="onMouseEnter()" class="menu-btn">
+        <mat-icon>{{ isSideNavLocked ? 'menu_open' : 'menu' }}</mat-icon>
       </button>
       <span>INMS<span class="accent">PRO</span></span>
       
@@ -25,7 +25,8 @@
     </mat-toolbar>
 
     <mat-sidenav-container class="app-sidenav-container" autosize>
-      <mat-sidenav #sidenav mode="side" [opened]="isExpanded" class="app-sidenav" [fixedInViewport]="false">
+      <mat-sidenav #sidenav mode="side" [opened]="isExpanded" class="app-sidenav" [fixedInViewport]="false"
+                   (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
         <div class="nav-group-label" *ngIf="isExpanded">General</div>
         <mat-nav-list>
           <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link" class="nav-item">
